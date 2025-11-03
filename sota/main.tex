@@ -1,0 +1,210 @@
+\documentclass[11pt, a4paper]{article}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage{fancyhdr}
+\usepackage{tabularx}
+\usepackage{geometry}
+\usepackage{rotating}
+\usepackage{minitoc}
+\usepackage{verbatim}
+\usepackage{pdfpages}
+\usepackage{float}
+\usepackage{listings}
+\usepackage{graphics}
+\usepackage{listings}
+\usepackage{geometry}
+\usepackage{mathtools}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{newtxtext,newtxmath}
+\usepackage{siunitx}
+\usepackage{float}
+\usepackage[inkscapeformat=png]{svg}
+\usepackage[backend=bibtex, style=ieee]{biblatex}
+\usepackage{csquotes}
+\usepackage{hyperref}
+
+\geometry{
+  a4paper,
+  total={170mm,257mm},
+  left=20mm,
+  top=20mm,
+}
+
+\hypersetup{
+  colorlinks=false,
+  %linkcolor=blue,
+  filecolor=magenta,
+  urlcolor=cyan,
+  pdftitle={SOTA},
+  pdfauthor={Nicolas Jeanmenne}
+  pdfpagemode=FullScreen,
+}
+
+\date{}
+\title{State-of-the-art}
+\author{Nicolas Jeanmenne}
+
+\bibliography{biblio.bib}
+
+\begin{document}
+
+%%%% FOR ALL THE DOCUMENT
+\parindent0pt
+\newcommand{\HRule}{\rule{\linewidth}{0.5mm}}
+
+%%%% TITLE PAGE
+\begin{titlepage}
+  \begin{figure}[!t]
+    \centering
+    \includegraphics[width=.4\textwidth]{images/ucl_logo.jpg}
+  \end{figure}
+  \center
+  \vspace{1.35em}
+  \textsc{\LARGE Direct device access from the SmartNIC towards datacenter disaggregation}\\[0.5cm]
+  \textsc{\large} \\[0.5cm]
+  \HRule \\[0.5cm]
+  { \huge \bfseries State-of-the-art}\\[0.3cm]
+  \HRule \\[1.5cm]
+  \begin{minipage}[t]{.5\textwidth}
+    \large{
+      \vspace{0.2cm}
+      \begin{center}
+        Nicolas \textsc{Jeanmenne} - 48741900\\
+        \vspace{0.4cm}
+      \end{center}
+      \vspace{5cm}
+
+    }
+  \end{minipage}%
+  \vspace*{3cm}
+
+  \begin{figure}[!h]
+    \centering
+    \includegraphics[width=.5\textwidth]{images/logepl.jpg}
+  \end{figure}
+  \vspace{0.5cm}
+
+  {\large 2025-2026}
+\end{titlepage}
+
+\newpage
+
+\pagestyle{fancy}
+\renewcommand\headrulewidth{1pt}
+\fancyhead[L]{Direct device access from the SmartNIC towards datacenter disaggregation}
+\fancyhead[R]{State-of-the-art draft}
+\setlength{\headheight}{14.5pt}
+\newpage
+
+\newcommand{\authcite}[1]{\citeauthor{#1} \cite{#1}}
+
+%%
+%% The abstract is a short summary of the work to be presented in the
+%% article.
+\begin{abstract}
+  TODO: complete abstract
+
+  \textit{This paper an is draft aiming at analyzing state-of-the-art solution for DDA from the smartNIC towards datacenter disaggregation
+  and is not made to be submitted anywhere}
+\end{abstract}
+
+\maketitle
+
+\section{Introduction}
+
+For decades, servers in datacenters were designed under a monolithic model, meaning that all hardware resources are physically
+attached to the same frame. This model is now a bottleneck for performance, network throughput and to efficiently consume resources.
+In order to solve the monolithic challenge, a new architectural design has been proposed : disaggregation.
+
+\section{Definitions}
+
+\subsection{Disaggregation}
+
+Disaggregation is a new model where hardware resources such as computing power, memory, accelerators, storage, ... are divided
+into pools (or nodes) interconnected into each other via a high-speed network. This allows resources to be allocated on demand,
+with better utilization and availability. There is mainly two levels of disaggregation.
+
+Partial disaggregation separates storage components from CPU and memory which remain integrated together. This level of
+disaggregation has already been widely implemented since early 2020s.
+
+Fully disaggregation regroups same type of resource into clusters which are interconnected over a network to allow
+communication and data exchange between them. \cite{lin_disaggregated_2020}
+
+\subsection{RDMA}
+
+Remote Direct Memory Access (RDMA) is a protocol that allows to access memory from one computer into another computer without
+involving operating system \cite{recio_remote_2007}. This protocol offers high throughput and low latency, and will be referred from many articles
+covering this topic.
+
+\subsection{Zero-copy}
+
+Zero-copy enable the possibility to transfer data from one device to another without requiring CPU to copy the data. This
+avoids redundant copies, reducing CPU usage.
+
+\subsection{NVMe-oF}
+
+NVMe over-Fabric (NVMe-oF) is an extension of NVMe command set. It allows to send these commands over networked fabrics
+\cite{noauthor_nvme_2021, noauthor_what_nodate, guz_nvme-over-fabrics_2017}
+
+\section{Goals}
+
+This paper will focus on fully disaggregated datacenter, especially on interaction between NVMe storage pools and SmartNIC.
+One of our objectives is to allow SmartNICs to communicate directly with the storage without involving any compute pool.
+%TODO:  give a more precise definition
+
+\section{Problems and challenges}
+
+Problems can be divided into two boxes by their root cause :
+
+\begin{itemize}
+  \item Problems due to traditional monolithic architectural server. This type of problem is the core reason of why datacenters
+    are moving from monolithic architecture from disaggregated one.
+  \item New challenges brought by disaggregation. Since disaggregated computing is a relatively new OS design who breaks many
+    of assumption previously made in the research. Researchers and datacenter operators need to find creative solutions to
+    outcome these challenges and enjoy the benefits of disaggregation.
+\end{itemize}
+
+\subsection{Monolithic challenges}
+
+The main drawback with monolithic architecture (MA) is \textbf{resource stranding}. When a server exhausts one of its resource,
+for example memory, all other resources cannot be utilized and result in a waste of resources.
+
+Another non-negligible issue concerning MA is failure tolerance and availability. When a piece of hardware fails this may cause
+the entire server to fails and become unavailable.
+
+Finally, replacing or upgrading hardware in MA occurs maintenance that can be costly.
+
+\subsection{Disaggregation challenges}
+
+One of the main challenge in disaggregated architecture (DA) is that network bandwidth becomes a central point of communication between
+clusters; CPU-storage communication needs to be done in a few milliseconds while CPU-memory needs to be done in a few nanoseconds, usually
+100ns \cite{lin_disaggregated_2020}.
+
+Existing network stacks face significant trade-offs in terms of flexibility and performance. For example, RDMA and RDMA
+over Convergent Ethernet (RoCE) are high-performance protocols, but they lack flexibility because they are tightly coupled
+to specific hardware, making them difficult to adapt. In addition to limited flexibility, RDMA suffers from issues like
+head-of-line blocking, congestion, and vendor lock-in, due to hardware requirements that aren't met by commodity equipment.
+On the other hand, network stacks like Linux TCP offer greater flexibility but at the cost of poor performance and
+inefficient CPU utilization \cite{skiadopoulos_high-throughput_2024}.
+
+\section{State-of-the-art designs and solutions}
+
+\subsection{Zero-copy data path}
+
+\authcite{skiadopoulos_high-throughput_2024} designed a new prototype called \textit{ZeroNIC} which can zero-copy data between
+NIC and accelerators. Its main advantage is that is it agnostic of the accelerator type and canrun on CPU, GPU, FPGA, ...
+NIC hardware split header and payload, transferring the latter directly to the receiver applications buffers without intermediates
+copies.
+
+Concerning NVMe storage, \authcite{sun_scalio_2025} focused on NVMe-oF target offloading which extends zero-copy mechanism,
+transferring data to the DPU's host channel adapter (HCA) via peer-to-peer PCI communication (P2PDMA) and thus creating a new
+kind of zero-copy data path.
+
+\section{Conclusion}
+TODO : write conclusion
+
+\printbibliography
+
+\end{document}
