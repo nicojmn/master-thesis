@@ -148,11 +148,7 @@ avoids redundant copies, reducing CPU usage.
 NVMe over-Fabric (NVMe-oF) is an extension of NVMe command set. It allows to send these commands over networked fabrics
 \cite{noauthor_nvme_2021, noauthor_what_nodate, guz_nvme-over-fabrics_2017}
 
-\section{Goals}
 
-This paper will focus on fully disaggregated datacenter, especially on interaction between NVMe storage pools and SmartNIC.
-One of our objectives is to allow SmartNICs to communicate directly with the storage without involving any compute pool.
-%TODO:  give a more precise definition
 
 \section{Problems and challenges}
 
@@ -161,9 +157,9 @@ Problems can be divided into two boxes by their root cause :
 \begin{itemize}
   \item Problems due to traditional monolithic architectural server. This type of problem is the core reason of why datacenters
     are moving from monolithic architecture from disaggregated one.
-  \item New challenges brought by disaggregation. Since disaggregated computing is a relatively new OS design who breaks many
-    of assumption previously made in the research. Researchers and datacenter operators need to find creative solutions to
-    outcome these challenges and enjoy the benefits of disaggregation.
+  \item New challenges brought by disaggregation. Disaggregated computing is a relatively new design in system and datacenter
+    who breaks many of assumption previously made in the research. Researchers and datacenter operators need to find
+    creative solutions to outcome these challenges and enjoy the benefits of disaggregation.
 \end{itemize}
 
 \subsection{Monolithic challenges}
@@ -201,6 +197,12 @@ copies.
 Concerning NVMe storage, \authcite{sun_scalio_2025} focused on NVMe-oF target offloading which extends zero-copy mechanism,
 transferring data to the DPU's host channel adapter (HCA) via peer-to-peer PCI communication (P2PDMA) and thus creating a new
 kind of zero-copy data path.
+
+\section{Objectives}
+
+This paper will focus on fully disaggregated datacenter, especially on interaction between NVMe storage pools and SmartNIC.
+One of our objectives is to allow SmartNICs to communicate directly with the storage without involving any compute pool.
+%TODO:  give a more precise definition
 
 \section{Conclusion}
 TODO : write conclusion
