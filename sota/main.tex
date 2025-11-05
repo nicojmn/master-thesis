@@ -143,12 +143,14 @@ covering this topic.
 Zero-copy enable the possibility to transfer data from one device to another without requiring CPU to copy the data. This
 avoids redundant copies, reducing CPU usage.
 
+\subsection{SPDK}
+
+TODO : complete
+
 \subsection{NVMe-oF}
 
 NVMe over-Fabric (NVMe-oF) is an extension of NVMe command set. It allows to send these commands over networked fabrics
 \cite{noauthor_nvme_2021, noauthor_what_nodate, guz_nvme-over-fabrics_2017}
-
-
 
 \section{Problems and challenges}
 
@@ -198,11 +200,15 @@ Concerning NVMe storage, \authcite{sun_scalio_2025} focused on NVMe-oF target of
 transferring data to the DPU's host channel adapter (HCA) via peer-to-peer PCI communication (P2PDMA) and thus creating a new
 kind of zero-copy data path.
 
+\subsection{Split stacks}
+
+TODO : complete
+
 \section{Objectives}
 
 This paper will focus on fully disaggregated datacenter, especially on interaction between NVMe storage pools and SmartNIC.
 One of our objectives is to allow SmartNICs to communicate directly with the storage without involving any compute pool.
-%TODO:  give a more precise definition
+% TODO:  give a more precise definition
 
 \section{Conclusion}
 TODO : write conclusion
