@@ -206,7 +206,11 @@ kind of zero-copy data path.
 
 \subsection{Split stacks}
 
-TODO : complete
+Split stacks are networking stacks divided in several planes, each one optimized for a specific task. IO-TCP from
+\authcite{kim_rearchitecting_2023} separate the traditional Linux TCP stack into a stack running on the host CPU, performing
+control operations, and thus called the control plane. Such operations are complex and benefits from features of the CISC CPU
+(for example branch prediction, vectorized instructions, ...). The host stack extends the mTCP \cite{jeong_mtcp_2014} API with methods to offload
+file opening, writing and closing, such that applications have the most minimal changes to do in order to run itself on IO-TCP.
 
 \section{Objectives}
 
