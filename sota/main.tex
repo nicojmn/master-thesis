@@ -187,7 +187,7 @@ head-of-line blocking, congestion, and vendor lock-in, due to hardware requireme
 On the other hand, network stacks like Linux TCP offer greater flexibility but at the cost of poor performance and
 inefficient CPU utilization \cite{skiadopoulos_high-throughput_2024}.
 
-\section{State-of-the-art designs and solutions}
+\section{State-of-the-art designs and solutions} \label{sec:sota}
 
 Some hardware pieces are evolving, like storage moving from hard disk drive to NVMe SSD and RAM becoming less expensive.
 This allows researchers and enterprises to discover several new ways to achieve high performance computing. In this section
@@ -211,6 +211,11 @@ Split stacks are networking stacks divided in several planes, each one optimized
 control operations, and thus called the control plane. Such operations are complex and benefits from features of the CISC CPU
 (for example branch prediction, vectorized instructions, ...). The host stack extends the mTCP \cite{jeong_mtcp_2014} API with methods to offload
 file opening, writing and closing, such that applications have the most minimal changes to do in order to run itself on IO-TCP.
+
+\section{Unresolved challenges}
+
+There are some challenges still left open upon reading papers in \textbf{section \ref{sec:sota}}. This section aims to
+list them, with the goal to define a clear approach for working on the master's thesis as well as a precise problem to solve.
 
 \section{Objectives}
 
