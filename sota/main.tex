@@ -204,6 +204,13 @@ Concerning NVMe storage, \authcite{sun_scalio_2025} focused on NVMe-oF target of
 transferring data to the DPU's host channel adapter (HCA) via peer-to-peer PCI communication (P2PDMA) and thus creating a new
 kind of zero-copy data path.
 
+\subsection{Batched write}
+
+Batched write mechanism retains write operations until an arbitrary threshold is achieved, then all these operations are run
+consecutively while a group commit ensures atomicity of operations. The goal is to improve throughput and reduce the accelerator
+CPU load. While it is not technically a contribution brought by disaggregation, its evolution into such systems is still relevant
+to be mentioned.
+
 \subsection{Split stacks}
 
 Split stacks are networking stacks divided in several planes, each one optimized for a specific task. IO-TCP from
@@ -223,6 +230,7 @@ essentially resolved with the set of commands provided by the implementation.
 
 \section{Unresolved challenges}
 
+\paragraph{}
 There are some challenges still left open upon reading papers in \textbf{section \ref{sec:sota}}. This section aims to
 list them, with the goal to define a clear approach for working on the master's thesis as well as a precise problem to solve.
 
@@ -235,6 +243,10 @@ Another problem is that file reading on NVMe disks is done with direct I/O on a 
 performance, but support for file system isn't very developed for now.
 
 Next, with a smaller amount of connection (typically < 4), Linux TCP stack outperforms IO-TCP by over 1.5 times.
+
+\paragraph{}
+Batched writes used in Scalio \cite{sun_scalio_2025} to improve throughput of write operations come at the cost of latency
+increase. This can lead to non-negligible issues in environment where low latency is critical.
 
 \section{Objectives}
 
