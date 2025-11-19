@@ -9,6 +9,7 @@
 
 - Disaggregation -> solve the problem in context
 - sNIC to NVMe -> interesting field which is not yet studied as much as GPU / memory
+- Draw a chart illustrating disaggregation for NVMe via sNIC
 
 ## Objectives
 
