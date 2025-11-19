@@ -226,6 +226,16 @@ essentially resolved with the set of commands provided by the implementation.
 There are some challenges still left open upon reading papers in \textbf{section \ref{sec:sota}}. This section aims to
 list them, with the goal to define a clear approach for working on the master's thesis as well as a precise problem to solve.
 
+IO-TCP \cite{kim_rearchitecting_2023} lacks of dynamic synchronization. This because authors assumes that files don't change
+during the content delivery service. In their solution, both host and smartNIC share the same file system, but any change
+on the host-side FS isn't propagated to the SmartNIC stack.
+% -> Distributed FS ?
+
+Another problem is that file reading on NVMe disks is done with direct I/O on a regular ext4 file system. SPDK reaches the best
+performance, but support for file system isn't very developed for now.
+
+Next, with a smaller amount of connection (typically < 4), Linux TCP stack outperforms IO-TCP by over 1.5 times.
+
 \section{Objectives}
 
 This paper will focus on fully disaggregated datacenter, especially on interaction between NVMe storage pools and SmartNIC.
