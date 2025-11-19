@@ -212,6 +212,15 @@ control operations, and thus called the control plane. Such operations are compl
 (for example branch prediction, vectorized instructions, ...). The host stack extends the mTCP \cite{jeong_mtcp_2014} API with methods to offload
 file opening, writing and closing, such that applications have the most minimal changes to do in order to run itself on IO-TCP.
 
+The data plane handles all operations related to data packet preparation and transfer. These operations are simpler in comparison
+of the control plane and then fit better the ARM cores of the SmartNIC. They also benefit from being stateless which suits the
+usage of the smartNIC. File and disk I/O are offloaded to otherwise it would interfere with the control plane on host CPU.
+Data plane operations are virtually performed and enable a mechanism of SEND / ECHO which translate in multiple MTU packets
+transfer.
+
+Many difficulties due to the split introduce themselves, like RTT measurement, retransmission and error handling, but are
+essentially resolved with the set of commands provided by the implementation.
+
 \section{Unresolved challenges}
 
 There are some challenges still left open upon reading papers in \textbf{section \ref{sec:sota}}. This section aims to
