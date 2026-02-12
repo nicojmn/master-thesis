@@ -1,0 +1,6 @@
+CompileFlags:
+  Add: [
+    "-I../spdk/include/",
+    "-I../spdk/spdk/lib",
+    "-I../spdk/dpdk/build/include/",
+	]

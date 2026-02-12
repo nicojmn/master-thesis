@@ -1,0 +1,21 @@
+[
+  {
+    "arguments": [
+      "/usr/bin/gcc",
+      "-c",
+      "-I/etinfo/users/2021/njeanmenne/spdk/build/include",
+      "-pthread",
+      "-Wl,--whole-archive",
+      "-Wl,-Bstatic",
+      "-Wl,-Bdynamic",
+      "-Wl,--no-whole-archive",
+      "-pthread",
+      "-o",
+      "test-name",
+      "./get_bdev_name.c"
+    ],
+    "directory": "/etinfo/users/2021/njeanmenne/src",
+    "file": "/etinfo/users/2021/njeanmenne/src/get_bdev_name.c",
+    "output": "/etinfo/users/2021/njeanmenne/src/test-name"
+  }
+]
