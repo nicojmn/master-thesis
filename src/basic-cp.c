@@ -48,7 +48,9 @@ static void read_complete(struct spdk_bdev_io *bdev_io, bool success,
   struct context_t *ctx = cb_arg;
 
   if (success) {
-    SPDK_NOTICELOG("I/O read  from bdev : %s\n", ctx->buf);
+    if (g_opts.output_path != NULL) { // only print content if not -o set
+      SPDK_NOTICELOG("I/O read from bdev : %s\n", ctx->buf);
+    }
   } else {
     SPDK_ERRLOG("I/O read bdev error\n");
   }
@@ -85,7 +87,7 @@ static void read_complete(struct spdk_bdev_io *bdev_io, bool success,
   spdk_app_stop(success ? 0 : -1);
 }
 
-static void read_string(void *arg) {
+static void read_file(void *arg) {
   struct context_t *ctx = arg;
   int rc = 0;
 
@@ -96,7 +98,7 @@ static void read_string(void *arg) {
   if (rc == -ENOMEM) {
     SPDK_NOTICELOG("Queuing I/O");
     ctx->bdev_io_wait.bdev = ctx->bdev;
-    ctx->bdev_io_wait.cb_fn = read_string;
+    ctx->bdev_io_wait.cb_fn = read_file;
     ctx->bdev_io_wait.cb_arg = ctx;
     spdk_bdev_queue_io_wait(ctx->bdev, ctx->bdev_io_channel,
                             &ctx->bdev_io_wait);
@@ -130,7 +132,7 @@ static void write_complete(struct spdk_bdev_io *bdev_io, bool success,
                  context->buf);
   SPDK_NOTICELOG("Resetting content of buffer\n");
 
-  read_string(context);
+  read_file(context);
 }
 static void write_file(void *arg) {
   struct context_t *ctx = arg;
