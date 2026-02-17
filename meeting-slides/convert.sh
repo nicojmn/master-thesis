@@ -1,39 +1,55 @@
 #!/usr/bin/env bash
 
-SRC="."
-OUT="./out"
+SRC="./Q2"
+OUT="./out/Q2"
+TARGET=""
+FILE_PREFIX="meeting-"
 
-while getopts "p" opt; do
+while getopts "pr:" opt; do
   case $opt in
     p)
       COMPILE_ALL=true
       ;;
+    r)
+      TARGET=$OPTARG
+      ;;
     *)
-      echo "Usage: $0 [-p] (recompile previously build PDF)"
+      printf "Usage: ./$0
+      \t[-p] (recompile previously build PDF)
+      \t[-r s<week-number>] (compile only the specified meeting slides)\n"
       exit 1
       ;;
   esac
 done
 
+compile_marp() {
+  local md_file=$1
+  local base=$(basename "$md_file" .md)
+  local pdf="$OUT/$base.pdf"
+  if [[ ! -f "$pdf" || "$COMPILE_ALL" == true ]]; then
+    if [[ "$base" == "$FILE_PREFIX"* ]]; then
+      marp --pdf --allow-local-files --html -o $"$pdf" "$md_file"
+    fi
+  fi
+}
+
 if [ ! -d "$OUT" ]; then
 	mkdir -p "$OUT"
 fi
 
-if [ "$COMPILE_ALL" == true ]; then
-	for md in "$SRC"/*.md; do
-		base=$(basename "$md" .md)
-		pdf="$OUT/$base.pdf"
-		marp --pdf --allow-local-files --html -o $"$pdf" "$md"
-	done
-else
-for md in "$SRC"/*.md; do
-    base=$(basename "$md" .md)
-    pdf="$OUT/$base.pdf"
+if [ -n "$TARGET" ]; then
+  md="$SRC/meeting-$TARGET.md"
 
-    
-    if [ ! -f "$pdf" ]; then
-      marp --pdf --allow-local-files --html -o $"$pdf" "$md"
-    fi
-  done
+  if [ -f "$md" ]; then
+    compile_marp "$md"
+    exit 0
+  else
+    echo "Target file $md does not exist."
+    exit 1
+  fi
 fi
+
+for md in "$SRC"/*.md; do
+  compile_marp "$md"
+  done
 
