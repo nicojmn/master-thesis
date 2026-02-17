@@ -31,13 +31,12 @@ struct context_t {
 
 struct g_opts_t {
   char *input_path;
+  char *output_path;
   struct stat fstat;
   int fd;
 };
 
-static struct g_opts_t g_opts = {
-    .input_path = NULL,
-};
+static struct g_opts_t g_opts = {.input_path = NULL, .output_path = NULL};
 
 static void callback(enum spdk_bdev_event_type type, struct spdk_bdev *bdev,
                      void *event_ctx) {
@@ -52,6 +51,28 @@ static void read_complete(struct spdk_bdev_io *bdev_io, bool success,
     SPDK_NOTICELOG("I/O read  from bdev : %s\n", ctx->buf);
   } else {
     SPDK_ERRLOG("I/O read bdev error\n");
+  }
+
+  if (g_opts.output_path != NULL) {
+    int fd = open(g_opts.output_path, O_WRONLY | O_CREAT | O_TRUNC);
+    if (fd == -1) {
+      SPDK_ERRLOG("Failed to open %s : %s\n", g_opts.output_path,
+                  strerror(errno));
+    } else {
+      uint32_t current_written = 0;
+      while (current_written < ctx->buf_size) {
+        int rc = write(fd, ctx->buf + current_written,
+                       ctx->buf_size - current_written);
+        if (rc < 0) {
+          SPDK_ERRLOG("Error writing to %s : %s\n", g_opts.output_path,
+                      strerror(errno));
+          close(fd);
+          break;
+        }
+        current_written += rc;
+      }
+      close(fd);
+    }
   }
 
   uint64_t iotime = spdk_bdev_get_io_time(ctx->bdev);
@@ -249,12 +270,19 @@ static void discover(void *arg1) {
   write_file(discover_ctx);
 }
 
-static void usage(void) { printf("-f <file> : source file path\n"); }
+static void usage(void) {
+  printf("Usage : \n");
+  printf("\t-f <path> : source file path\n");
+  printf("\t-o <path> : output destination path\n");
+}
 
 static int parse_arg(int ch, char *argv) {
   switch (ch) {
   case 'f':
     g_opts.input_path = strdup(argv);
+    break;
+  case 'o':
+    g_opts.output_path = strdup(argv);
     break;
   default:
     usage();
