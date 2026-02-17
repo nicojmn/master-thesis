@@ -27,6 +27,7 @@ struct context_t {
   const char *bdev_name;
   char *buf;
   uint32_t buf_size;
+  uint64_t start_tsc;
 };
 
 struct g_opts_t {
@@ -46,6 +47,10 @@ static void callback(enum spdk_bdev_event_type type, struct spdk_bdev *bdev,
 static void read_complete(struct spdk_bdev_io *bdev_io, bool success,
                           void *cb_arg) {
   struct context_t *ctx = cb_arg;
+
+  uint64_t end_tsc = spdk_get_ticks();
+  uint64_t delta = end_tsc - ctx->start_tsc;
+  uint64_t time_us = (delta * 1000000) / spdk_get_ticks_hz();
 
   if (success) {
     if (g_opts.output_path != NULL) { // only print content if not -o set
@@ -77,8 +82,7 @@ static void read_complete(struct spdk_bdev_io *bdev_io, bool success,
     }
   }
 
-  uint64_t iotime = spdk_bdev_get_io_time(ctx->bdev);
-  SPDK_NOTICELOG("Final I/O time : %lu", iotime);
+  SPDK_NOTICELOG("Read I/O time : %lu us\n", time_us);
 
   spdk_bdev_free_io(bdev_io);
   spdk_put_io_channel(ctx->bdev_io_channel);
@@ -92,6 +96,7 @@ static void read_file(void *arg) {
   int rc = 0;
 
   SPDK_NOTICELOG("Reading I/O\n");
+  ctx->start_tsc = spdk_get_ticks();
   rc = spdk_bdev_read(ctx->bdev_desc, ctx->bdev_io_channel, ctx->buf, 0,
                       ctx->buf_size, read_complete, ctx);
 
@@ -113,7 +118,11 @@ static void read_file(void *arg) {
 
 static void write_complete(struct spdk_bdev_io *bdev_io, bool success,
                            void *cb_arg) {
-  struct context_t *context = cb_arg;
+  struct context_t *ctx = cb_arg;
+
+  uint64_t end_tsc = spdk_get_ticks();
+  uint64_t delta = end_tsc - ctx->start_tsc;
+  uint64_t time_us = (delta * 1000000) / spdk_get_ticks_hz();
 
   spdk_bdev_free_io(bdev_io);
 
@@ -121,18 +130,19 @@ static void write_complete(struct spdk_bdev_io *bdev_io, bool success,
     SPDK_NOTICELOG("I/O write completed successfully\n");
   } else {
     SPDK_ERRLOG("I/O write error : %d\n", EIO);
-    spdk_put_io_channel(context->bdev_io_channel);
-    spdk_bdev_close(context->bdev_desc);
+    spdk_put_io_channel(ctx->bdev_io_channel);
+    spdk_bdev_close(ctx->bdev_desc);
     spdk_app_stop(-1);
     return;
   }
 
-  memset(context->buf, 0, context->buf_size);
-  SPDK_NOTICELOG("Content written (%dB) : %s\n", context->buf_size,
-                 context->buf);
+  memset(ctx->buf, 0, ctx->buf_size);
+  SPDK_NOTICELOG("Content written (%dB) : %s\n", ctx->buf_size, ctx->buf);
   SPDK_NOTICELOG("Resetting content of buffer\n");
 
-  read_file(context);
+  SPDK_NOTICELOG("Write I/O time : %lu us\n", time_us);
+
+  read_file(ctx);
 }
 static void write_file(void *arg) {
   struct context_t *ctx = arg;
@@ -165,6 +175,8 @@ static void write_file(void *arg) {
     spdk_app_stop(-1);
   }
   SPDK_NOTICELOG("I/O : writing to bdev : %s\n", ctx->bdev_name);
+  ctx->start_tsc = spdk_get_ticks();
+
   rc = spdk_bdev_write(ctx->bdev_desc, ctx->bdev_io_channel, ctx->buf, 0,
                        ctx->buf_size, write_complete, ctx);
   if (rc == -ENOMEM) {
@@ -222,10 +234,10 @@ static void reset_zone(void *arg) {
 static void discover(void *arg1) {
 
   SPDK_NOTICELOG("Entering discover function\n");
-  struct context_t *discover_ctx = arg1;
+  struct context_t *ctx = arg1;
   struct spdk_bdev *bdev;
-  discover_ctx->bdev = NULL;
-  discover_ctx->bdev_desc = NULL;
+  ctx->bdev = NULL;
+  ctx->bdev_desc = NULL;
   int rc;
 
   bdev = spdk_bdev_first();
@@ -235,41 +247,38 @@ static void discover(void *arg1) {
     spdk_app_stop(-1);
     return;
   }
-  discover_ctx->bdev_name = spdk_bdev_get_name(bdev);
+  ctx->bdev_name = spdk_bdev_get_name(bdev);
 
-  rc = spdk_bdev_open_ext(discover_ctx->bdev_name, true, callback, NULL,
-                          &discover_ctx->bdev_desc);
+  rc =
+      spdk_bdev_open_ext(ctx->bdev_name, true, callback, NULL, &ctx->bdev_desc);
   if (rc) {
     SPDK_ERRLOG("Descriptor error : %d", rc);
     spdk_app_stop(-1);
     return;
   }
 
-  discover_ctx->bdev = spdk_bdev_desc_get_bdev(discover_ctx->bdev_desc);
-  discover_ctx->bdev_io_channel =
-      spdk_bdev_get_io_channel(discover_ctx->bdev_desc);
-  if (discover_ctx->bdev_io_channel == NULL) {
-    SPDK_ERRLOG("No io channel for : %s", discover_ctx->bdev_name);
-    spdk_bdev_close(discover_ctx->bdev_desc);
+  ctx->bdev = spdk_bdev_desc_get_bdev(ctx->bdev_desc);
+  ctx->bdev_io_channel = spdk_bdev_get_io_channel(ctx->bdev_desc);
+  if (ctx->bdev_io_channel == NULL) {
+    SPDK_ERRLOG("No io channel for : %s", ctx->bdev_name);
+    spdk_bdev_close(ctx->bdev_desc);
     spdk_app_stop(-1);
     return;
   }
 
-  const char *name = spdk_bdev_get_name(discover_ctx->bdev);
-  const char *product = spdk_bdev_get_product_name(discover_ctx->bdev);
-  uint32_t bsize = spdk_bdev_get_block_size(discover_ctx->bdev);
-  uint64_t iotime = spdk_bdev_get_io_time(discover_ctx->bdev);
+  const char *name = spdk_bdev_get_name(ctx->bdev);
+  const char *product = spdk_bdev_get_product_name(ctx->bdev);
+  uint32_t bsize = spdk_bdev_get_block_size(ctx->bdev);
 
-  SPDK_NOTICELOG(
-      "\n\nName : %s\nProduct : %s\nBlock size : %u bytes\nI/O time : %lu\n\n",
-      name, product, bsize, iotime);
+  SPDK_NOTICELOG("\n\nName : %s\nProduct : %s\nBlock size : %u bytes\n\n", name,
+                 product, bsize);
 
   SPDK_NOTICELOG("End of discover\n");
-  if (spdk_bdev_is_zoned(discover_ctx->bdev)) {
-    reset_zone(discover_ctx);
+  if (spdk_bdev_is_zoned(ctx->bdev)) {
+    reset_zone(ctx);
     return;
   }
-  write_file(discover_ctx);
+  write_file(ctx);
 }
 
 static void usage(void) {
