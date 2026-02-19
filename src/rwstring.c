@@ -23,6 +23,7 @@ struct context_t {
   const char *bdev_name;
   char *buf;
   uint32_t buf_size;
+  uint64_t start_tsc;
 };
 
 static void callback(enum spdk_bdev_event_type type, struct spdk_bdev *bdev,
@@ -34,11 +35,17 @@ static void read_complete(struct spdk_bdev_io *bdev_io, bool success,
                           void *cb_arg) {
   struct context_t *ctx = cb_arg;
 
+  uint64_t end_tsc = spdk_get_ticks();
+  uint64_t delta = end_tsc - ctx->start_tsc;
+  uint64_t time_us = (delta * 1000000) / spdk_get_ticks_hz();
+
   if (success) {
     SPDK_NOTICELOG("I/O read  from bdev : %s\n", ctx->buf);
   } else {
     SPDK_ERRLOG("I/O read bdev error\n");
   }
+
+  SPDK_NOTICELOG("Read I/O time : %lu us\n", time_us);
 
   spdk_bdev_free_io(bdev_io);
   spdk_put_io_channel(ctx->bdev_io_channel);
@@ -51,6 +58,7 @@ static void read_string(void *arg) {
   struct context_t *ctx = arg;
   int rc = 0;
 
+  ctx->start_tsc = spdk_get_ticks();
   SPDK_NOTICELOG("Reading I/O\n");
   rc = spdk_bdev_read(ctx->bdev_desc, ctx->bdev_io_channel, ctx->buf, 0,
                       ctx->buf_size, read_complete, ctx);
@@ -75,6 +83,9 @@ static void write_complete(struct spdk_bdev_io *bdev_io, bool success,
                            void *cb_arg) {
   struct context_t *context = cb_arg;
 
+  uint64_t end_tsc = spdk_get_ticks();
+  uint64_t delta = end_tsc - context->start_tsc;
+  uint64_t time_us = (delta * 1000000) / spdk_get_ticks_hz();
   spdk_bdev_free_io(bdev_io);
 
   if (success) {
@@ -87,6 +98,7 @@ static void write_complete(struct spdk_bdev_io *bdev_io, bool success,
     return;
   }
 
+  SPDK_NOTICELOG("Write I/O time : %lu us\n", time_us);
   memset(context->buf, 0, context->buf_size);
   SPDK_NOTICELOG("Content written (%dB) : %s\n", context->buf_size,
                  context->buf);
@@ -98,6 +110,7 @@ static void write_string(void *arg) {
   struct context_t *ctx = arg;
   int rc = 0;
 
+  ctx->start_tsc = spdk_get_ticks();
   SPDK_NOTICELOG("I/O : writing to bdev : %s\n", ctx->bdev_name);
   rc = spdk_bdev_write(ctx->bdev_desc, ctx->bdev_io_channel, ctx->buf, 0,
                        ctx->buf_size, write_complete, ctx);
