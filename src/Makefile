@@ -1,4 +1,4 @@
-PKG_CONFIG_PATH = ../spdk/build/lib/pkgconfig
+PKG_CONFIG_PATH = ../../spdk/build/lib/pkgconfig
 SPDK_CFLAGS := $(shell PKG_CONFIG_PATH="$(PKG_CONFIG_PATH)" pkg-config --cflags spdk_bdev spdk_event spdk_event_bdev spdk_env_dpdk)
 SPDK_LIB := $(shell PKG_CONFIG_PATH="$(PKG_CONFIG_PATH)" pkg-config --libs spdk_bdev spdk_event spdk_event_bdev spdk_env_dpdk)
 SYS_LIB := $(shell PKG_CONFIG_PATH="$(PKG_CONFIG_PATH)" pkg-config --libs --static spdk_syslibs)
