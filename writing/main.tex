@@ -1,7 +1,5 @@
-\documentclass[11pt, a4paper]{article}
-\usepackage[T1]{fontenc}
-\usepackage[utf8]{inputenc}
-\usepackage[english]{babel}
+% EPL master thesis covers template
+\documentclass{template/EPL-master-thesis-covers-EN}
 \usepackage{fancyhdr}
 \usepackage{tabularx}
 \usepackage{geometry}
@@ -25,92 +23,71 @@
 \usepackage{csquotes}
 \usepackage{hyperref}
 
-\geometry{
-  a4paper,
-  total={170mm,257mm},
-  left=20mm,
-  top=20mm,
-}
 
-\hypersetup{
-  colorlinks=false,
-  %linkcolor=blue,
-  filecolor=magenta,
-  urlcolor=cyan,
-  pdftitle={SOTA},
-  pdfauthor={Nicolas Jeanmenne}
-  pdfpagemode=FullScreen,
-}
+% Please fill in the following boxes
+% Title of the thesis
+\title{Direct device access from the smartNIC towards datacenters disaggregation}
 
-\date{}
-\title{State-of-the-art}
-\author{Nicolas Jeanmenne}
+% Subtitle - remove this line if not applicable
+\subtitle{Optional subtitle}
 
-\bibliography{biblio.bib}
+% Name of the student author(s)
+\author{Nicolas \textsc{Jeanmenne}}
+% \secondauthor{Firstname \textsc{Lastname}}		% remove if not applicable
+%\thirdauthor{Firstname \textsc{Lastname}}			% remove if not applicable
 
-\begin{document}
+% Official title of the master degree (copy/paste from list below)
+% Master [120] in Biomedical Engineering
+% Master [120] in Chemical and Materials Engineering
+% Master [120] in Civil Engineering
+% Master [120] in Computer Science
+% Master [120] in Computer Science and Engineering
+% Master [120] in Cybersecurity
+% Master [120] in Data Sciences Engineering
+% Master [120] in Data Science: Information technology
+% Master [120] in Electrical Engineering
+% Master [120] in Electro-mechanical Engineering
+% Master [120] in Mathematical Engineering
+% Master [120] in Mechanical Engineering
+% Master [120] in Physical Engineering
+% Master [60] in Computer Science
+% Specialised master in nanotechnologies
+% Specialised master in nuclear engineering
+\degreetitle{Master [120] in Computer Science}
 
-%%%% FOR ALL THE DOCUMENT
-\parindent0pt
-\newcommand{\HRule}{\rule{\linewidth}{0.5mm}}
+% Name of the supervisor(s)
+\supervisor{Tom \textsc{Barbette}}
+% \secondsupervisor{Firstname \textsc{Lastname}}		% remove if not applicable
+%\thirdsupervisor{Firstname \textsc{Lastname}}		% remove if not applicable
 
-%%%% TITLE PAGE
-\begin{titlepage}
-  \begin{figure}[!t]
-    \centering
-    \includegraphics[width=.4\textwidth]{images/ucl_logo.jpg}
-  \end{figure}
-  \center
-  \vspace{1.35em}
-  \textsc{\LARGE Direct device access from the SmartNIC towards datacenter disaggregation}\\[0.5cm]
-  \textsc{\large} \\[0.5cm]
-  \HRule \\[0.5cm]
-  { \huge \bfseries State-of-the-art}\\[0.3cm]
-  \HRule \\[1.5cm]
-  \begin{minipage}[t]{.5\textwidth}
-    \large{
-      \vspace{0.2cm}
-      \begin{center}
-        Nicolas \textsc{Jeanmenne} - 48741900\\
-        \vspace{0.4cm}
-      \end{center}
-      \vspace{5cm}
+% Name of the reader(s)
+\readerone{Firstname \textsc{Lastname}}
+\readertwo{Firstname \textsc{Lastname}}			% remove if not applicable
+\readerthree{Firstname \textsc{Lastname}}			% remove if not applicable
+%\readerfour{Firstname \textsc{Lastname}}			% remove if not applicable
+%\readerfive{Firstname \textsc{Lastname}}			% remove if not applicable
 
-    }
-  \end{minipage}%
-  \vspace*{3cm}
-
-  \begin{figure}[!h]
-    \centering
-    \includegraphics[width=.5\textwidth]{images/logepl.jpg}
-  \end{figure}
-  \vspace{0.5cm}
-
-  {\large 2025-2026}
-\end{titlepage}
-
-\newpage
-
-\pagestyle{fancy}
-\renewcommand\headrulewidth{1pt}
-\fancyhead[L]{Direct device access from the SmartNIC towards datacenter disaggregation}
-\fancyhead[R]{State-of-the-art draft}
-\setlength{\headheight}{14.5pt}
-\newpage
+% Academic year (update if necessary)
+\years{2025--2026}
 
 \newcommand{\authcite}[1]{\citeauthor{#1} \cite{#1}}
 
-%%
-%% The abstract is a short summary of the work to be presented in the
-%% article.
-\begin{abstract}
-  TODO: complete abstract
+\bibliography{biblio.bib}
 
-  \textit{This paper an is draft aiming at analyzing state-of-the-art solution for DDA from the smartNIC towards datacenter disaggregation
+% Document
+\begin{document}
+  % Front cover page
+  \maketitle
+
+
+\chapter*{Abstract}
+
+  TO-DO: complete abstract
+
+  \textit{This paper is draft aiming at analyzing state-of-the-art solution for DDA from the smartNIC towards datacenter disaggregation
   and is not made to be submitted anywhere}
-\end{abstract}
 
-\maketitle
+\chapter{State-of-the-art}
 
 \section{Introduction}
 
@@ -119,6 +96,8 @@ attached to the same frame. This model is now a bottleneck for performance, netw
 In order to solve the monolithic challenge, a new architectural design has been proposed : disaggregation.
 
 \section{Definitions}
+
+TO-DO : rewrite without subsections
 
 \subsection{Disaggregation}
 
@@ -134,7 +113,7 @@ communication and data exchange between them. \cite{lin_disaggregated_2020}
 
 \subsection{RDMA}
 
-Remote Direct Memory Access (RDMA) is a protocol that allows to access memory from one computer into another computer without
+Remote Direct Memory Access (RDMA) is a protocol that allows accessing memory from one computer into another computer without
 involving operating system \cite{recio_remote_2007}. This protocol offers high throughput and low latency, and will be referred from many articles
 covering this topic.
 
@@ -145,16 +124,17 @@ avoids redundant copies, reducing CPU usage.
 
 \subsection{SPDK}
 
-TODO : complete
+TO-DO : complete
 
 \subsection{NVMe-oF}
 
-NVMe over-Fabric (NVMe-oF) is an extension of NVMe command set. It allows to send these commands over networked fabrics
+NVMe over-Fabric (NVMe-oF) is an extension of NVMe command set. It allows sending these commands over networked fabrics
 \cite{noauthor_nvme_2021, noauthor_what_nodate, guz_nvme-over-fabrics_2017}
 
 \section{Architectural challenges}
 
 Challenges whose origin is architectural design can be divided into two classes :
+
 
 \begin{itemize}
   \item Problems due to traditional monolithic architectural server. This type of problem is the core reason of why datacenters
@@ -196,7 +176,7 @@ we'll review main contributions from the literature.
 \subsection{Zero-copy data path}
 
 \authcite{skiadopoulos_high-throughput_2024} designed a new prototype called \textit{ZeroNIC} which can zero-copy data between
-NIC and accelerators. Its main advantage is that is it agnostic of the accelerator type and canrun on CPU, GPU, FPGA, ...
+NIC and accelerators. Its main advantage is that is it agnostic of the accelerator type and can run on CPU, GPU, FPGA, ...
 NIC hardware split header and payload, transferring the latter directly to the receiver applications buffers without intermediates
 copies.
 
@@ -217,15 +197,15 @@ Split stacks are networking stacks divided in several planes, each one optimized
 \authcite{kim_rearchitecting_2023} separate the traditional Linux TCP stack into a stack running on the host CPU, performing
 control operations, and thus called the control plane. Such operations are complex and benefits from features of the CISC CPU
 (for example branch prediction, vectorized instructions, ...). The host stack extends the mTCP \cite{jeong_mtcp_2014} API with methods to offload
-file opening, writing and closing, such that applications have the most minimal changes to do in order to run itself on IO-TCP.
+file opening, writing, and closing, such that applications have the most minimal changes to do in order to run itself on IO-TCP.
 
 The data plane handles all operations related to data packet preparation and transfer. These operations are simpler in comparison
-of the control plane and then fit better the ARM cores of the SmartNIC. They also benefit from being stateless which suits the
+of the control plane and then fit better the ARM cores of the smartNIC. They also benefit from being stateless which suits the
 usage of the smartNIC. File and disk I/O are offloaded to otherwise it would interfere with the control plane on host CPU.
 Data plane operations are virtually performed and enable a mechanism of SEND / ECHO which translate in multiple MTU packets
 transfer.
 
-Many difficulties due to the split introduce themselves, like RTT measurement, retransmission and error handling, but are
+Many difficulties due to the split introduce themselves, like RTT measurement, retransmission, and error handling, but are
 essentially resolved with the set of commands provided by the implementation.
 
 \section{Unresolved challenges}
@@ -235,8 +215,8 @@ There are some challenges still left open upon reading papers in \textbf{section
 list them, with the goal to define a clear approach for working on the master's thesis as well as a precise problem to solve.
 
 IO-TCP \cite{kim_rearchitecting_2023} lacks of dynamic synchronization. This because authors assumes that files don't change
-during the content delivery service. In their solution, both host and smartNIC share the same file system, but any change
-on the host-side FS isn't propagated to the SmartNIC stack.
+during the content delivery service. In their solution, both host and smartNIC share the same filesystem, but any change
+on the host-side FS isn't propagated to the smartNIC stack.
 % -> Distributed FS ?
 
 Another problem is that file reading on NVMe disks is done with direct I/O on a regular ext4 file system. SPDK reaches the best
@@ -250,13 +230,13 @@ increase. This can lead to non-negligible issues in environment where low latenc
 
 \section{Objectives}
 
-This paper will focus on fully disaggregated datacenter, especially on interaction between NVMe storage pools and SmartNIC.
+This paper will focus on fully disaggregated datacenter, especially on interaction between NVMe storage pools and smartNIC.
 One of our objectives is to allow SmartNICs to communicate directly with the storage without involving any compute pool.
-% TODO:  give a more precise definition
-
-\section{Conclusion}
-TODO : write conclusion
+% TO-DO:  give a more precise definition
 
 \printbibliography
+ 
+  % Back cover page
+  \backcoverpage
 
 \end{document}
