@@ -246,8 +246,12 @@ int main(int argc, char **argv) {
 
   spdk_app_opts_init(&opts, sizeof(opts));
   opts.name = "bdev_name";
-  opts.json_config_file = "./simple-config.json";
   opts.env_context = "-a 0000:02:00.0";
+
+  if ((rc = spdk_app_parse_args(argc, argv, &opts, NULL, NULL, NULL, NULL)) !=
+      SPDK_APP_PARSE_ARGS_SUCCESS) {
+    exit(rc);
+  }
 
   rc = spdk_app_start(&opts, discover, &context);
 
