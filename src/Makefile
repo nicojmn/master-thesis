@@ -29,4 +29,4 @@ rw-string-run: clean rwstring
 basic-cp-demo: basic-cp
 	sudo $(OUT)/basic-cp -f ./demo.txt
 
-.PHONY: test-info rwstring basic-cp
+.PHONY: test-info rwstring basic-cp hello_bdev
