@@ -5,7 +5,7 @@ SYS_LIB := $(shell PKG_CONFIG_PATH="$(PKG_CONFIG_PATH)" pkg-config --libs --stat
 CC = gcc
 OUT = ./out
 
-all : test-info hello_bdev rwstring basic-cp
+all : test-info rwstring basic-cp queue-cp
 clean:
 	rm -rf ./out/*
 
@@ -20,6 +20,9 @@ rwstring:
                 -Wl,-Bdynamic -Wl,--no-whole-archive $(SYS_LIB)
 basic-cp:
 	$(CC) $(SPDK_CFLAGS) -g -o $(OUT)/basic-cp ./basic-cp.c -pthread -Wl,--whole-archive -Wl,-Bstatic $(SPDK_LIB) \
+                -Wl,-Bdynamic -Wl,--no-whole-archive $(SYS_LIB)
+queue-cp:
+	$(CC) $(SPDK_CFLAGS) -g -o $(OUT)/queue-cp ./queue-cp.c -pthread -Wl,--whole-archive -Wl,-Bstatic $(SPDK_LIB) \
                 -Wl,-Bdynamic -Wl,--no-whole-archive $(SYS_LIB)
 
 test-info-run: clean test-info
