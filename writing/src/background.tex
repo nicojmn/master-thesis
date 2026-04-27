@@ -1,0 +1,134 @@
+This chapter provides an overview of disaggregated datacenter architectures and smartNIC-to-storage interactions.  We will first give an overview of
+the main concepts and definitions used in the literature, then we will review the main
+architectural challenges and solutions proposed by researchers. Finally, we will list some
+unresolved challenges that we aim to solve in this thesis.
+
+\section{Overview of concepts and definitions}
+
+Hardware is evolving, notably through the transition from hard disk drives to \acrfull{ssd} devices and the decreasing cost of RAM.
+These trends have enabled researchers and companies to explore new approaches to \acrfull{hpc}. Modern \acrshort{ssd}s use the \acrfull{nvme} protocol, a low-latency, high-throughput interface designed for flash storage. \acrshort{nvme} devices can be accessed over the network using \acrfull{nvmeof}, which extends the \acrlong{nvme} command set to support network fabrics (smartNICs, \dots) \cite{noauthor_nvme_2021, noauthor_what_nodate, guz_nvme-over-fabrics_2017}. Such advancements made it possible to design new architecture designs, such as disaggregated datacenters. 
+
+This thesis uses \textit{disaggregation} to denote an architecture in which hardware resources such as compute, memory,
+accelerators, and storage are split into pools (or nodes) interconnected through a high-speed network. This design allows
+resources to be allocated on demand, improving utilization and availability. Two levels are commonly distinguished.
+\textit{Partial disaggregation} separates storage from compute and memory, which remain integrated together; this level has
+already been widely implemented since the early 2020s. \textit{Full disaggregation} groups each resource type into dedicated
+clusters that communicate over the network. \cite{lin_disaggregated_2020}. Figures \ref{fig:partial-disaggregation} and \ref{fig:full-disaggregation} illustrate these two levels of disaggregation.
+
+
+\begin{figure}[htbp]
+	\centering
+	\begin{minipage}{0.48\linewidth}
+		\centering
+		\includesvg[width=0.8\linewidth]{src/img/partial_disa.svg}
+		\caption{Partial disaggregation architecture}
+		\label{fig:partial-disaggregation}
+	\end{minipage}
+	\begin{minipage}{0.48\linewidth}
+		\centering
+		\includesvg[width=0.8\linewidth]{src/img/full_disa.svg}
+		\caption{Full disaggregation architecture}
+		\label{fig:full-disaggregation}
+	\end{minipage}
+\end{figure}
+
+High-speed network communication is a critical aspect of disaggregated architectures. \acrfull{rdma} \cite{rdma_rfc} \cite{rdma_consortium} is a protocol that allows one computer to access memory on another computer without CPU involvement, providing high throughput and low latency. \acrfull{roce} \cite{roce_nvidia_docs} is a variant of \acrshort{rdma} that operates over Ethernet networks, making it more widely compatible with existing infrastructure.
+
+
+Writing efficient storage applications involves understanding the role of \acrfull{spdk}. \acrshort{spdk} is a set of tools and libraries for building high-performance storage applications, particularly those that interact with \acrshort{nvme} devices. It provides a user-space driver that bypasses the kernel, allowing for lower latency and higher throughput compared to traditional kernel-based drivers \cite{noauthor_storage_nodate}. This development kit will be used in this thesis to implement and evaluate our proposed solutions, as detailed in the next chapters.
+
+
+\begin{draftbox}
+	Sections below (until end of chapter) are draft notes and need to be rewritten and structured.
+	TODOs : 
+	\begin{itemize}
+		\item Rewrite and structure improvements
+		\item Table of comparison of solutions
+	\end{itemize}
+\end{draftbox}
+
+
+\section{Architectural challenges}
+
+Architectural challenges can be grouped into two categories:
+
+\begin{itemize}
+	\item Limitations of traditional monolithic servers, which motivate the transition toward disaggregated architectures.
+	\item New challenges introduced by disaggregation, which break assumptions commonly made in earlier systems research and require new design approaches.
+\end{itemize}
+
+\subsection{Monolithic challenges}
+
+The main limitation of \acrfull{ma} is \textbf{resource stranding}. When one resource is exhausted (for example, memory), other resources on the same server may remain underutilized, leading to waste.
+
+Another important issue in \acrfull{ma} is availability under failures. A single hardware failure can impact the whole server and make it unavailable.
+
+Finally, hardware replacement and upgrades in \acrfull{ma} often require costly maintenance operations.
+
+\subsection{Disaggregation challenges}
+
+In disaggregated architecture (\acrfull{da}), the network becomes the central communication path between resource clusters. This creates strict latency and bandwidth requirements: \acrshort{cpu}-storage communication typically tolerates millisecond-scale delays, whereas \acrshort{cpu}-memory communication requires nanosecond-scale delays (around 100 ns) \cite{lin_disaggregated_2020}.
+
+Current network stacks also expose strong flexibility-performance trade-offs. \acrshort{rdma} and \acrfull{roce} offer high performance but limited flexibility due to hardware coupling. In addition, \acrshort{rdma} can suffer from head-of-line blocking, congestion, and vendor lock-in because its requirements are not always satisfied by commodity hardware. By contrast, Linux \acrshort{tcp} is more flexible but delivers lower performance and less efficient \acrshort{cpu} utilization \cite{skiadopoulos_high-throughput_2024}.
+
+
+\section{State-of-the-art designs and solutions} \label{sec:sota}
+
+\subsection{Zero-copy data path}
+
+The term \textit{zero-copy} refers to data transfer between devices without requiring data replication by the
+\acrshort{cpu}, thereby avoiding redundant copies and reducing \acrshort{cpu} usage. \authcite{skiadopoulos_high-throughput_2024} designed a new prototype called \textit{ZeroNIC} which can zero-copy data between NIC and accelerators. Its main advantage is that is it agnostic of the accelerator type and can run on \acrshort{cpu}, \acrshort{gpu}, \acrshort{fpga}, …
+NIC hardware split header and payload, transferring the latter directly to the receiver applications buffers without intermediates
+copies.
+
+Concerning \acrshort{nvme} storage, \authcite{sun_scalio_2025} focused on \acrshort{nvmeof} target offloading which extends zero-copy mechanism,
+transferring data to the \acrfull{dpu}'s \acrfull{hca} via peer-to-peer \acrfull{pci} communication (\acrfull{p2pdma}) and thus creating a new
+kind of zero-copy data path.
+
+\subsection{Batched write}
+
+Batched write mechanism retains write operations until an arbitrary threshold is achieved, then all these operations are run
+consecutively while a group commit ensures atomicity of operations. The goal is to improve throughput and reduce the accelerator
+\acrshort{cpu} load. While it is not technically a contribution brought by disaggregation, its evolution into such systems is still relevant
+to be mentioned.
+
+\subsection{Split stacks}
+
+Split stacks are networking stacks divided in several planes, each one optimized for a specific task. IO-TCP from
+\authcite{kim_rearchitecting_2023} separate the traditional Linux \acrshort{tcp} stack into a stack running on the host \acrshort{cpu}, performing
+control operations, and thus called the control plane. Such operations are complex and benefits from features of the \acrfull{cisc} \acrshort{cpu}
+(for example branch prediction, vectorized instructions, …). The host stack extends the mTCP \cite{jeong_mtcp_2014} API with methods to offload
+file opening, writing, and closing, such that applications have the most minimal changes to do in order to run itself on IO-TCP.
+
+The data plane handles all operations related to data packet preparation and transfer. These operations are simpler in comparison
+of the control plane and then fit better the \acrfull{arm} cores of the smartNIC. They also benefit from being stateless which suits the
+usage of the smartNIC. File and disk \acrfull{io} are offloaded to otherwise it would interfere with the control plane on host \acrshort{cpu}.
+Data plane operations are virtually performed and enable a mechanism of SEND / ECHO which translate in multiple \acrfull{mtu} packets
+transfer.
+
+Many difficulties due to the split introduce themselves, like \acrfull{rtt} measurement, retransmission, and error handling, but are
+essentially resolved with the set of commands provided by the implementation.
+
+\section{Unresolved challenges}
+
+There are some challenges still left open upon reading papers in \textbf{section \ref{sec:sota}}. This section aims to
+list them, with the goal to define a clear approach for working on the master's thesis as well as a precise problem to solve.
+
+IO-TCP \cite{kim_rearchitecting_2023} lacks of dynamic synchronization. This because authors assumes that files don't change
+during the content delivery service. In their solution, both host and smartNIC share the same filesystem, but any change
+on the host-side \acrfull{fs} isn't propagated to the smartNIC stack.
+% -> Distributed FS ?
+
+Another problem is that file reading on \acrshort{nvme} disks is done with direct \acrshort{io} on a regular ext4 file system. \acrshort{spdk} reaches the best
+performance, but support for file system isn't very developed for now.
+
+Next, with a smaller amount of connection (typically < 4), Linux \acrshort{tcp} stack outperforms IO-TCP by over 1.5 times.
+
+Batched writes used in Scalio \cite{sun_scalio_2025} to improve throughput of write operations come at the cost of latency
+increase. This can lead to non-negligible issues in environment where low latency is critical.
+
+\section{Objectives}
+
+This paper will focus on fully disaggregated datacenter, especially on interaction between \\acrshort{nvme} storage pools and smartNIC.
+One of our objectives is to allow SmartNICs to communicate directly with the storage without involving any compute pool.
+% TO-DO:  give a more precise definition

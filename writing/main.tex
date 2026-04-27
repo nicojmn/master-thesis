@@ -8,9 +8,9 @@
 \usepackage{verbatim}
 \usepackage{pdfpages}
 \usepackage{float}
-\usepackage{listings}
+\usepackage{caption}
 \usepackage{graphics}
-\usepackage{listings}
+\usepackage{graphicx}
 \usepackage{geometry}
 \usepackage{mathtools}
 \usepackage{amsmath}
@@ -18,11 +18,17 @@
 \usepackage{newtxtext,newtxmath}
 \usepackage{siunitx}
 \usepackage{float}
-\usepackage[inkscapeformat=png]{svg}
+\usepackage[inkscapeformat=pdf]{svg}
 \usepackage[backend=bibtex, style=ieee]{biblatex}
 \usepackage{csquotes}
-\usepackage{hyperref}
-
+\usepackage[hidelinks]{hyperref}
+\usepackage[acronym]{glossaries}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+\usepackage{tikz}
+\usepackage[most]{tcolorbox}
+\usepackage[newfloat]{minted}
+\usepackage[svgnames]{xcolor}
 
 % Please fill in the following boxes
 % Title of the thesis
@@ -71,172 +77,98 @@
 \years{2025--2026}
 
 \newcommand{\authcite}[1]{\citeauthor{#1} \cite{#1}}
-
+\makeglossaries
+\input{acronyms.tex}
 \bibliography{biblio.bib}
+
+\newtcolorbox{tbox}[1]{
+    breakable,
+    colback=gray!10,
+    colframe=gray!60,
+    boxrule=0.5pt,
+    arc=2pt,
+    left=6pt,
+    right=6pt,
+    top=6pt,
+    bottom=6pt,
+    title={#1}
+}
+
+\newtcolorbox{draftbox}{
+    breakable,
+    colback=Goldenrod!10,
+    colframe=Goldenrod!60,
+    boxrule=0.5pt,
+    arc=2pt,
+    left=6pt,
+    right=6pt,
+    top=6pt,
+    bottom=6pt,
+    title={\textbf{DRAFT NOTES}}
+}
+
+
+\hypersetup{
+    pdftitle={Direct device access from the smartNIC towards datacenters disaggregation},
+    pdfauthor={Nicolas Jeanmenne},
+    pdfsubject={Master thesis: Direct device access and datacenter disaggregation},
+    pdfkeywords={smartNIC, datacenter, disaggregation, direct memory access, DMA, RDMA, NVMe},
+    pdfproducer={pdflatex},
+}
 
 % Document
 \begin{document}
-  % Front cover page
-  \maketitle
+% Front cover page
+\maketitle
 
+\pagestyle{empty}
 
 \chapter*{Abstract}
+\addcontentsline{toc}{chapter}{Abstract}
 
-  TO-DO: complete abstract
+    \input{src/abstract.tex}
 
-  \textit{This paper is draft aiming at analyzing state-of-the-art solution for DDA from the smartNIC towards datacenter disaggregation
-  and is not made to be submitted anywhere}
+\pagestyle{empty}
 
-\chapter{State-of-the-art}
+\setcounter{tocdepth}{4}
+\tableofcontents
+\thispagestyle{empty}
+\newpage
 
-\section{Introduction}
+\printglossary[title= List of acronyms, type=\acronymtype]
+\thispagestyle{empty}
+\newpage
+\listoflistings
+\thispagestyle{empty}
+\newpage
 
-For decades, servers in datacenters were designed under a monolithic model, meaning that all hardware resources are physically
-attached to the same frame. This model is now a bottleneck for performance, network throughput and to efficiently consume resources.
-In order to solve the monolithic challenge, a new architectural design has been proposed : disaggregation.
+\chapter{Introduction}
+\pagenumbering{arabic}
+\setcounter{page}{1}
+\pagestyle{plain}
 
-\section{Definitions}
-
-TO-DO : rewrite without subsections
-
-\subsection{Disaggregation}
-
-Disaggregation is a new model where hardware resources such as computing power, memory, accelerators, storage, ... are divided
-into pools (or nodes) interconnected into each other via a high-speed network. This allows resources to be allocated on demand,
-with better utilization and availability. There is mainly two levels of disaggregation.
-
-Partial disaggregation separates storage components from CPU and memory which remain integrated together. This level of
-disaggregation has already been widely implemented since early 2020s.
-
-Fully disaggregation regroups same type of resource into clusters which are interconnected over a network to allow
-communication and data exchange between them. \cite{lin_disaggregated_2020}
-
-\subsection{RDMA}
-
-Remote Direct Memory Access (RDMA) is a protocol that allows accessing memory from one computer into another computer without
-involving operating system \cite{recio_remote_2007}. This protocol offers high throughput and low latency, and will be referred from many articles
-covering this topic.
-
-\subsection{Zero-copy}
-
-Zero-copy enable the possibility to transfer data from one device to another without requiring CPU to copy the data. This
-avoids redundant copies, reducing CPU usage.
-
-\subsection{SPDK}
-
-TO-DO : complete
-
-\subsection{NVMe-oF}
-
-NVMe over-Fabric (NVMe-oF) is an extension of NVMe command set. It allows sending these commands over networked fabrics
-\cite{noauthor_nvme_2021, noauthor_what_nodate, guz_nvme-over-fabrics_2017}
-
-\section{Architectural challenges}
-
-Challenges whose origin is architectural design can be divided into two classes :
+    \input{src/intro.tex}
 
 
-\begin{itemize}
-  \item Problems due to traditional monolithic architectural server. This type of problem is the core reason of why datacenters
-    are moving from monolithic architecture from disaggregated one.
-  \item New challenges brought by disaggregation. Disaggregated computing is a relatively new design in system and datacenter
-    who breaks many of assumption previously made in the research. Researchers and datacenter operators need to find
-    creative solutions to outcome these challenges and enjoy the benefits of disaggregation.
-\end{itemize}
+\chapter{Background} \label{ch:background}
 
-\subsection{Monolithic challenges}
+    \input{src/background}
 
-The main drawback with monolithic architecture (MA) is \textbf{resource stranding}. When a server exhausts one of its resource,
-for example memory, all other resources cannot be utilized and result in a waste of resources.
 
-Another non-negligible issue concerning MA is failure tolerance and availability. When a piece of hardware fails this may cause
-the entire server to fails and become unavailable.
+\chapter{Measurements} \label{ch:measurements}
 
-Finally, replacing or upgrading hardware in MA occurs maintenance that can be costly.
+    \input{src/measurements}
 
-\subsection{Disaggregation challenges}
+\chapter{Appendix : performances script} \label{ch:perfs-scripts}
+\pagenumbering{roman}
+\setcounter{page}{1}
 
-One of the main challenge in disaggregated architecture (DA) is that network bandwidth becomes a central point of communication between
-clusters; CPU-storage communication needs to be done in a few milliseconds while CPU-memory needs to be done in a few nanoseconds, usually
-100ns \cite{lin_disaggregated_2020}.
+    \input{src/appendix-perf.tex}
 
-Existing network stacks face significant trade-offs in terms of flexibility and performance. For example, RDMA and RDMA
-over Convergent Ethernet (RoCE) are high-performance protocols, but they lack flexibility because they are tightly coupled
-to specific hardware, making them difficult to adapt. In addition to limited flexibility, RDMA suffers from issues like
-head-of-line blocking, congestion, and vendor lock-in, due to hardware requirements that aren't met by commodity equipment.
-On the other hand, network stacks like Linux TCP offer greater flexibility but at the cost of poor performance and
-inefficient CPU utilization \cite{skiadopoulos_high-throughput_2024}.
 
-\section{State-of-the-art designs and solutions} \label{sec:sota}
+\printbibliography[heading=bibintoc]
 
-Some hardware pieces are evolving, like storage moving from hard disk drive to NVMe SSD and RAM becoming less expensive.
-This allows researchers and enterprises to discover several new ways to achieve high performance computing. In this section
-we'll review main contributions from the literature.
-
-\subsection{Zero-copy data path}
-
-\authcite{skiadopoulos_high-throughput_2024} designed a new prototype called \textit{ZeroNIC} which can zero-copy data between
-NIC and accelerators. Its main advantage is that is it agnostic of the accelerator type and can run on CPU, GPU, FPGA, ...
-NIC hardware split header and payload, transferring the latter directly to the receiver applications buffers without intermediates
-copies.
-
-Concerning NVMe storage, \authcite{sun_scalio_2025} focused on NVMe-oF target offloading which extends zero-copy mechanism,
-transferring data to the DPU's host channel adapter (HCA) via peer-to-peer PCI communication (P2PDMA) and thus creating a new
-kind of zero-copy data path.
-
-\subsection{Batched write}
-
-Batched write mechanism retains write operations until an arbitrary threshold is achieved, then all these operations are run
-consecutively while a group commit ensures atomicity of operations. The goal is to improve throughput and reduce the accelerator
-CPU load. While it is not technically a contribution brought by disaggregation, its evolution into such systems is still relevant
-to be mentioned.
-
-\subsection{Split stacks}
-
-Split stacks are networking stacks divided in several planes, each one optimized for a specific task. IO-TCP from
-\authcite{kim_rearchitecting_2023} separate the traditional Linux TCP stack into a stack running on the host CPU, performing
-control operations, and thus called the control plane. Such operations are complex and benefits from features of the CISC CPU
-(for example branch prediction, vectorized instructions, ...). The host stack extends the mTCP \cite{jeong_mtcp_2014} API with methods to offload
-file opening, writing, and closing, such that applications have the most minimal changes to do in order to run itself on IO-TCP.
-
-The data plane handles all operations related to data packet preparation and transfer. These operations are simpler in comparison
-of the control plane and then fit better the ARM cores of the smartNIC. They also benefit from being stateless which suits the
-usage of the smartNIC. File and disk I/O are offloaded to otherwise it would interfere with the control plane on host CPU.
-Data plane operations are virtually performed and enable a mechanism of SEND / ECHO which translate in multiple MTU packets
-transfer.
-
-Many difficulties due to the split introduce themselves, like RTT measurement, retransmission, and error handling, but are
-essentially resolved with the set of commands provided by the implementation.
-
-\section{Unresolved challenges}
-
-\paragraph{}
-There are some challenges still left open upon reading papers in \textbf{section \ref{sec:sota}}. This section aims to
-list them, with the goal to define a clear approach for working on the master's thesis as well as a precise problem to solve.
-
-IO-TCP \cite{kim_rearchitecting_2023} lacks of dynamic synchronization. This because authors assumes that files don't change
-during the content delivery service. In their solution, both host and smartNIC share the same filesystem, but any change
-on the host-side FS isn't propagated to the smartNIC stack.
-% -> Distributed FS ?
-
-Another problem is that file reading on NVMe disks is done with direct I/O on a regular ext4 file system. SPDK reaches the best
-performance, but support for file system isn't very developed for now.
-
-Next, with a smaller amount of connection (typically < 4), Linux TCP stack outperforms IO-TCP by over 1.5 times.
-
-\paragraph{}
-Batched writes used in Scalio \cite{sun_scalio_2025} to improve throughput of write operations come at the cost of latency
-increase. This can lead to non-negligible issues in environment where low latency is critical.
-
-\section{Objectives}
-
-This paper will focus on fully disaggregated datacenter, especially on interaction between NVMe storage pools and smartNIC.
-One of our objectives is to allow SmartNICs to communicate directly with the storage without involving any compute pool.
-% TO-DO:  give a more precise definition
-
-\printbibliography
- 
-  % Back cover page
-  \backcoverpage
+% Back cover page
+\backcoverpage
 
 \end{document}
