@@ -1,0 +1,48 @@
+%info
+// mode will be set up automically by fish script
+// Alternatively, you can manually run npf and set up a mode
+RDMA linux benchmark
+
+%config
+
+n_runs=10
+var_names={BANDWIDTH:Throughput,TRANSPORT:Transport protocol,SIZE:Transfer size (B),LATENCY:Latency}
+var_unit={BANDWIDTH:B/s,SIZE:B,LATENCY:s}
+var_divider={BANDWIDTH:1,SIZE:1,LATENCY:100000000}
+var_format={BANDWIDTH:eng.0,SIZE:eng.0.B,LATENCY:eng.0.s}
+graph_type=barplot
+
+%variables
+SIZE=[4096*65536]
+
+%late_variables
+RW={mode}
+
+
+%script@server sudo=true
+
+fio --name=npf_spdk-fio_read \
+    --ioengine=io_uring \
+    --filename=/dev/nvme0n1 \
+    --direct=1 \
+    --thread=1 \
+    --overwrite=1 \
+    --time_based=1 \
+    --timeout=5 \
+    --rw=${RW} \
+    --bs=${SIZE} \
+    --size=${SIZE} \
+    --iodepth=64 \
+    --output-format=json > fio.json
+
+if [[ "${RW}" == *"read"* ]];
+then
+    bw_bps=$(jq '.jobs[0].read.bw_bytes' fio.json)
+    latency_ns=$(jq '.jobs[0].read.lat_ns.mean' fio.json)
+else
+    bw_bps=$(jq '.jobs[0].write.bw_bytes' fio.json)
+    latency_ns=$(jq '.jobs[0].write.lat_ns.mean' fio.json)
+fi
+
+echo "RESULT-BANDWIDTH $bw_bps"
+echo "RESULT-LATENCY $latency_ns"

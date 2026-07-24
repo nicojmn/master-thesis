@@ -1,0 +1,42 @@
+%info
+
+bdevperf [mode] benchmark
+
+%config
+
+n_runs=10
+var_names={BANDWIDTH:Throughput,LATENCY:Latency,SIZE:Transfer size}
+var_unit={BANDWIDTH:B/s,SIZE:MB,LATENCY:s}
+var_divider={BANDWIDTH:0.000001,SIZE:1000000,LATENCY:1000000}
+var_format={BANDWIDTH:eng.0,SIZE:eng.0.B,LATENCY:eng.0.s}
+graph_type=barplot
+
+%variables
+// SIZE={4096000,10240000,102400000,999999488}
+SIZE={65536,163840,1638400,16777216}
+%late_variables
+RW={mode}
+
+%script@server sudo=true
+
+if [[ "${RW}" == *"rw" ]]
+then
+    RWMIX="-M 70"
+else
+    RWMIX=""
+fi
+
+/etinfo/users/2021/njeanmenne/spdk/build/examples/bdevperf \
+    -c /etinfo/users/2021/njeanmenne/master-thesis/src/simple-config.json \
+    -w ${RW} \
+    -q 64 \
+    -o ${SIZE} \
+    ${RWMIX} \
+    -t 10 | rg Total > results.txt
+
+bw_mbps=$(cat results.txt | awk '{print $5}')
+latency_us=$(cat results.txt | awk '{print $8}')
+    
+
+echo "RESULT-BANDWIDTH $bw_mbps"
+echo "RESULT-LATENCY $latency_us"

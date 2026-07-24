@@ -1,0 +1,76 @@
+%info
+// mode will be set up automically by fish script
+// Alternatively, you can manually run npf and set up a mode
+NVMe-oF [mode] benchmark
+
+%config
+
+n_runs=10
+var_names={BANDWIDTH:Throughput,TRANSPORT:Transport protocol,SIZE:Transfer size (B),LATENCY:Latency}
+var_unit={BANDWIDTH:B/s,SIZE:B,LATENCY:s}
+var_divider={BANDWIDTH:0.000001,SIZE:1,LATENCY:100000}
+var_format={BANDWIDTH:eng.0,SIZE:eng.0.B,LATENCY:eng.0.s}
+graph_serie=ENGINE
+graph_type=barplot
+
+%variables
+SIZE=[4096*65536]
+TRANSPORT={RDMA,TCP}
+
+%late_variables
+RW={mode}
+
+%init@client sudo=true
+
+PCI_ALLOWED="0000:02:00.0" /etinfo/users/2021/njeanmenne/spdk/scripts/setup.sh 2>&1
+sleep 3
+
+/etinfo/users/2021/njeanmenne/spdk/build/bin/nvmf_tgt -m 0x1 &
+sleep 3
+
+/etinfo/users/2021/njeanmenne/spdk/scripts/rpc.py bdev_nvme_attach_controller -b Nvme0 -t PCIe -a 0000:02:00.0 
+/etinfo/users/2021/njeanmenne/spdk/scripts/rpc.py nvmf_create_transport -t RDMA
+/etinfo/users/2021/njeanmenne/spdk/scripts/rpc.py nvmf_create_transport -t TCP
+/etinfo/users/2021/njeanmenne/spdk/scripts/rpc.py nvmf_create_subsystem nqn.2016-06.io.spdk:cnode1 -a -s SPDK001
+/etinfo/users/2021/njeanmenne/spdk/scripts/rpc.py nvmf_subsystem_add_ns nqn.2016-06.io.spdk:cnode1 Nvme0n1
+/etinfo/users/2021/njeanmenne/spdk/scripts/rpc.py nvmf_subsystem_add_listener nqn.2016-06.io.spdk:cnode1 -t RDMA -a 192.168.200.1 -s 4420
+/etinfo/users/2021/njeanmenne/spdk/scripts/rpc.py nvmf_subsystem_add_listener nqn.2016-06.io.spdk:cnode1 -t TCP -a 192.168.200.1 -s 4420
+
+// echo "EVENT ready"
+
+%script@server sudo=true
+cat > ./config.json << EOF
+{
+  "subsystems": [{
+    "subsystem": "bdev",
+    "config": [{
+      "method": "bdev_nvme_attach_controller",
+      "params": {
+        "name": "Nvme0",
+        "trtype": "${TRANSPORT}",
+        "adrfam": "IPv4",
+        "traddr": "192.168.200.1",
+        "trsvcid": "4420",
+        "subnqn": "nqn.2016-06.io.spdk:cnode1"
+      }
+    }]
+  }]
+}
+EOF
+
+/home/ubuntu/spdk/build/examples/bdevperf \
+    -c config.json \
+    -w ${RW} \
+    -q 64 \
+    -o ${SIZE} \
+    ${RWMIX} \
+    -t 10 \
+    -m 0x2 | grep Total > results.txt
+
+bw_mbps=$(cat results.txt | awk '{print $5}')
+latency_us=$(cat results.txt | awk '{print $8}')
+
+// /home/ubuntu/spdk/scripts/rpc.py spdk_kill_instance SIGTERM
+
+echo "RESULT-BANDWIDTH $bw_mbps"
+echo "RESULT-LATENCY $latency_us"

@@ -7,6 +7,8 @@ set npf_file "$argv[1]"
 set target_dir (dirname $npf_file)
 
 set cache
+set title_suffix
+# set extra_args
 if set -q _flag_cache
     set cache --cache
 end
@@ -21,9 +23,13 @@ if set -q _flag_suffix
     set title_suffix $_flag_suffix
 end
 
+# if set -q _flag_extra_args
+#     set extra_args $_flag_extra_args
+# end
+
 function sed_mode -a m file
     sed -E -e "s/RW=[{][^}]*[}]/RW={$m}/g" \
-        -e "s/spdk_bdev fio \[.*\] benchmark/spdk_bdev fio [$m] benchmark/g" \
+        -e "s/bdevperf \[.*\] benchmark/spdk_bdev fio [$m] benchmark/g" \
         "$file" >"run.npf"
 end
 
@@ -64,8 +70,8 @@ function run_npf_tests
         npf $cache --test "run.npf" --use-local $target_dir \
             --single-output "$target_dir/csv/$rw.csv" \
             --graph-title "$graph_title" \
-            --graph-filename "$target_dir/graphs/$rw.pdf"
-
+            --graph-filename "$target_dir/graphs/$rw.pdf" # \
+        # "$extra_args"
         rm "run.npf"
     end
 end
