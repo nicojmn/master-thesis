@@ -5,7 +5,7 @@ unresolved challenges that we aim to solve in this thesis.
 
 \section{Overview of concepts and definitions}
 
-Hardware is evolving, notably through the transition from hard disk drives to \acrfull{ssd} devices and the decreasing cost of RAM.
+New kind of hardware components have emerged, \acrfull{ssd} are replacing traditional \acrfull{hdd}  
 These trends have enabled researchers and companies to explore new approaches to \acrfull{hpc}. Modern \acrshort{ssd}s use the \acrfull{nvme} protocol, a low-latency, high-throughput interface designed for flash storage. \acrshort{nvme} devices can be accessed over the network using \acrfull{nvmeof}, which extends the \acrlong{nvme} command set to support network fabrics (smartNICs, \dots) \cite{noauthor_nvme_2021, noauthor_what_nodate, guz_nvme-over-fabrics_2017}. Such advancements made it possible to design new architecture designs, such as disaggregated datacenters. 
 
 This thesis uses \textit{disaggregation} to denote an architecture in which hardware resources such as compute, memory,
@@ -94,17 +94,9 @@ to be mentioned.
 
 \subsection{Split stacks}
 
-Split stacks are networking stacks divided in several planes, each one optimized for a specific task. IO-TCP from
-\authcite{kim_rearchitecting_2023} separate the traditional Linux \acrshort{tcp} stack into a stack running on the host \acrshort{cpu}, performing
-control operations, and thus called the control plane. Such operations are complex and benefits from features of the \acrfull{cisc} \acrshort{cpu}
-(for example branch prediction, vectorized instructions, …). The host stack extends the mTCP \cite{jeong_mtcp_2014} API with methods to offload
-file opening, writing, and closing, such that applications have the most minimal changes to do in order to run itself on IO-TCP.
+Split stacks are networking stacks divided into multiple planes, each optimized for an architectural task. Recent state-of-the-art research uses this design to solve encountered bottlenecks () rather than offloading every operation. A common design is to separate control operations from data operations. This is the case for IO-TCP \cite{kim_rearchitecting_2023}, which splits \textbf{mTCP} \cite{jeong_mtcp_2014}, a userspace stack following this approach. The control plane is responsible for connection management, congestion control, and retransmission. It runs on the host \acrshort{cpu}, while the data plane is responsible for packet preparation and transfer, running on the smartNIC. This design prevents disk \acrshort{io} pollution in the \acrshort{cpu} cache and reduces contention, notably on the \acrfull{llc} miss rate which is improved by 27 \%. This allows a single core to saturate several \acrshort{nvme} disks at 77.4 Gbps, whereas Linux and Atlas \cite{marinos_diskcryptnet_2017} (a video streaming FreeBSD server) achieve roughly half that throughput even when using 10 cores. Network performance also benefits from reduced \acrshort{rtt} and improved throughput.
 
-The data plane handles all operations related to data packet preparation and transfer. These operations are simpler in comparison
-of the control plane and then fit better the \acrfull{arm} cores of the smartNIC. They also benefit from being stateless which suits the
-usage of the smartNIC. File and disk \acrfull{io} are offloaded to otherwise it would interfere with the control plane on host \acrshort{cpu}.
-Data plane operations are virtually performed and enable a mechanism of SEND / ECHO which translate in multiple \acrfull{mtu} packets
-transfer.
+While IO-TCP addresses host-centric bottlenecks with a specialized userspace implementation, ZeroNIC \cite{skiadopoulos_high-throughput_2024} relies on unmodified Linux kernel stack for the control plane to maintain standards robustness, while its hardware data path entirely bypasses host memory using zero-copy and \acrshort{p2pdma} mechanisms previously described.
 
 Many difficulties due to the split introduce themselves, like \acrfull{rtt} measurement, retransmission, and error handling, but are
 essentially resolved with the set of commands provided by the implementation.
@@ -117,6 +109,8 @@ list them, with the goal to define a clear approach for working on the master's 
 IO-TCP \cite{kim_rearchitecting_2023} lacks of dynamic synchronization. This because authors assumes that files don't change
 during the content delivery service. In their solution, both host and smartNIC share the same filesystem, but any change
 on the host-side \acrfull{fs} isn't propagated to the smartNIC stack.
+
+
 % -> Distributed FS ?
 
 Another problem is that file reading on \acrshort{nvme} disks is done with direct \acrshort{io} on a regular ext4 file system. \acrshort{spdk} reaches the best
@@ -129,6 +123,22 @@ increase. This can lead to non-negligible issues in environment where low latenc
 
 \section{Objectives}
 
-This paper will focus on fully disaggregated datacenter, especially on interaction between \\acrshort{nvme} storage pools and smartNIC.
+This master's thesis will focus on fully disaggregated datacenter, especially on interaction between \acrshort{nvme} storage pools and smartNIC.
 One of our objectives is to allow SmartNICs to communicate directly with the storage without involving any compute pool.
 % TO-DO:  give a more precise definition
+
+\begin{draftbox}
+	Pourquoi travailler sur IO-TCP et pas sur ZeroNIC ? 
+	\begin{itemize}
+		\item SPDK runs en user-space, donc c'est plus cohérent de se tourner vers une userspace stack plutôt que le kernel.
+		\item Les auteurs de IO-TCP disent clairement que ext4 est pas optimal, et que SPDK est meilleur. 
+		\item On utilise num\_p2p\_queues pour IO-TCP, donc à défault d'avoir la flexibilité de ZeroNIC, on a quand même le direct device access.
+	\end{itemize}
+\end{draftbox}
+
+
+\section{IO-TCP implementation analysis}
+
+\subsection{blablabla}
+
+\subsection{Deprecated parts}
