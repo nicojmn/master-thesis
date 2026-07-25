@@ -1,7 +1,9 @@
 EPL
+HPC
 Jeanmenne
 MB
 RDMA
+SPDK
 Specialised
 ZeroNIC
 acrlong

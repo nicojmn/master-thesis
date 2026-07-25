@@ -69,3 +69,4 @@ dkms.conf
 **/.harper-dictionary.txt
 **/out/**
 !meeting-slides/out/**
+**/*TODO.md
