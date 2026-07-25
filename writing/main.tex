@@ -21,7 +21,7 @@
 \usepackage[inkscapeformat=pdf]{svg}
 \usepackage[backend=bibtex, style=ieee]{biblatex}
 \usepackage{csquotes}
-\usepackage[hidelinks]{hyperref}
+\usepackage{hyperref}
 \usepackage[acronym]{glossaries}
 \usepackage{pgfplots}
 \pgfplotsset{compat=1.18}
@@ -67,9 +67,9 @@
 %\thirdsupervisor{Firstname \textsc{Lastname}}		% remove if not applicable
 
 % Name of the reader(s)
-\readerone{Firstname \textsc{Lastname}}
-\readertwo{Firstname \textsc{Lastname}}			% remove if not applicable
-\readerthree{Firstname \textsc{Lastname}}			% remove if not applicable
+\readerone{Nikita \textsc{Tyunyayev}}
+\readertwo{Vany \textsc{Ingezi}}			% remove if not applicable
+% \readerthree{Firstname \textsc{Lastname}}			% remove if not applicable
 %\readerfour{Firstname \textsc{Lastname}}			% remove if not applicable
 %\readerfive{Firstname \textsc{Lastname}}			% remove if not applicable
 
@@ -154,10 +154,18 @@
 
     \input{src/background}
 
+\chapter{Implementation} \label{ch:implementation}
 
-\chapter{Measurements} \label{ch:measurements}
+    \input{src/implementation.tex}
 
-    \input{src/measurements}
+\chapter{Evaluation} \label{ch:evaluation}
+
+    \input{src/evaluation.tex}
+
+
+\chapter{Conclusion and future work} \label{ch:conclusion}
+
+    \input{src/conclusion.tex}
 
 \chapter{Appendix : performances script} \label{ch:perfs-scripts}
 \pagenumbering{roman}
